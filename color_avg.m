@@ -33,7 +33,7 @@ for alpha=[0]
         Nt = ( tF/dt + 1 ); 
 
         %Generate the white noise and ito correction term
-        gamma=20;
+        gamma=10;
         seed=100*ik;
         rng(seed,'twister')
         t = [0:dt:dt*(Nt-1)]; %time vector
@@ -51,7 +51,7 @@ for alpha=[0]
         theta_mindt=squeeze(theta_full(end,:,:));
         
         %run high res Eul+Ito model
-        [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,'ito',W,Ito_sum);
+        [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,'itoeul',W,Ito_sum);
         time_ito=[time_ito t_end];
         %Compute final error at tF
         temp=norm(squeeze(vorticity_full(end,:,:))-vort_mindt)/norm(vort_mindt);
@@ -60,7 +60,7 @@ for alpha=[0]
         rel_theta_ito=[rel_theta_ito temp];
         
         %run high res Eul model
-        [vorticity_full,theta_full]=run_model_switch(tF,dt,Nx,'eul',W,Ito_sum);
+        [vorticity_full,theta_full]=run_model_switch(tF,dt,Nx,'euleul',W,Ito_sum);
         time_eul=[time_eul t_end];
         temp=norm(squeeze(vorticity_full(end,:,:))-vort_mindt)/norm(vort_mindt);
         rel_diff_eul=[rel_diff_eul temp];
@@ -91,7 +91,7 @@ for alpha=[0]
             rel_theta_rk2=[rel_theta_rk2 temp];
             
             %Run Eul+ito model
-            [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,'ito',W,Ito_sum);
+            [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,'itoeul',W,Ito_sum);
             time_ito=[time_ito t_end];
             %Compute final error at tF
             temp=norm(squeeze(vorticity_full(end,:,:))-vort_mindt)/norm(vort_mindt);
@@ -100,7 +100,7 @@ for alpha=[0]
             rel_theta_ito=[rel_theta_ito temp];
             
             %Run Eul model
-            [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,'eul',W,Ito_sum);
+            [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,'euleul',W,Ito_sum);
             time_eul=[time_eul t_end];
             temp=norm(squeeze(vorticity_full(end,:,:))-vort_mindt)/norm(vort_mindt);
             rel_diff_eul=[rel_diff_eul temp];
