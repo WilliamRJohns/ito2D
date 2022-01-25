@@ -165,8 +165,8 @@ for n = 1:Nt-1
     
     % Corrector step for physics (rk2)
     flag_predict = 1;
-    Cp = squeeze(Cv).*inv_laplacian;
-    CT1 = squeeze(CT);
+    Cp = Cv_star.*inv_laplacian;
+    CT1 =CT_star;
     subgrid_scale_mixing;  
     CT_star = CT + dt*CT_tendency + dt * ( (1-alpha_dc)*Dt_n + alpha_dc*Dt ) ;
     Cv_star = Cv + dt*Cv_tendency + dt * ( (1-alpha_dc)*Dt_n + alpha_dc*Dt ) ;

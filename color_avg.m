@@ -11,8 +11,8 @@ avg_ito=[]; avg_time_ito=[];
 avg_rk2=[]; avg_time_rk2=[];
 
 %%different colors of noise
-for alpha=[0,1e-5,1e-4,1e-3,1]
-%for alpha=[0]
+%for alpha=[0,1e-5,1e-4,1e-3,1]
+for alpha=[0]
     %arrays for different noise realizations
     diff_mat_eul=[]; time_mat_eul=[];
     diff_mat_ito=[]; time_mat_ito=[];
@@ -33,7 +33,7 @@ for alpha=[0,1e-5,1e-4,1e-3,1]
         Nt = ( tF/dt + 1 ); 
 
         %Generate the white noise and ito correction term
-        gamma=30;
+        gamma=20;
         seed=100*ik;
         rng(seed,'twister')
         t = [0:dt:dt*(Nt-1)]; %time vector
@@ -69,7 +69,7 @@ for alpha=[0,1e-5,1e-4,1e-3,1]
        
         % Run the model for increasing values of dt
         steps=[.05,.1,.5,1,2,4,8,16];
-        %steps=[.00025,.0005,.001,.005,.01,.05,.1,.5,1];
+        %steps=[.005,.01,.05,.1,.5,1,2,4,8,16];
         for dt=steps
             dt
             %Average the noise over the new dt
@@ -138,9 +138,9 @@ toc
 steps=[.01 steps];
 
 figure()
-loglog(steps,avg_time_rk2(1,:)); hold on;
-loglog(steps,avg_time_eul(1,:));
-loglog(steps,avg_time_ito(1,:));
+semilogx(steps,avg_time_rk2(1,:)); hold on;
+semilogx(steps,avg_time_eul(1,:));
+semilogx(steps,avg_time_ito(1,:));
 legend('rk2','eul','ito')
 title(sprintf('Avg running times alpha=%d'),0);
 xlabel('dt')
@@ -148,7 +148,7 @@ ylabel('seconds')
 
 figure()
 loglog(steps,avg_rk2(1,:),'b-*');hold on
-loglog(steps,avg_eul(1,:));
+loglog(steps,avg_eul(1,:),'r-x');
 loglog(steps,avg_ito(1,:));
 legend('rk2','eul','ito')
 title(sprintf('Covergence alpha=%d',0))

@@ -4,9 +4,8 @@ Cv_star = zeros(Nz,Nx);
 CT_star = zeros(Nz,Nx);
 Cv = squeeze(Cv_0(1,:,:));
 CT = squeeze(CT_0(1,:,:));
-Itov=zeros(Nz,Nx);
-Itot=zeros(Nz,Nx);
-test=zeros(Nt-1,2*Nz,2*Nx);
+% Itov=zeros(Nz,Nx);
+% Itot=zeros(Nz,Nx);
 CIto=zeros(Nz,Nx);
 for n = 1:Nt-1
     % --- linear advection
@@ -118,7 +117,8 @@ for n = 1:Nt-1
     CIto(Nz/2+2:Nz,1:Nx/2+1) = Cwrk(NzB-Nz/2+2:NzB,1:Nx/2+1)/Ncor;
     CIto(1:Nz/2+1,Nx/2+2:Nx) = Cwrk(1:Nz/2+1,NxB-Nx/2+2:NxB)/Ncor;
     CIto(Nz/2+2:Nz,Nx/2+2:Nx) = Cwrk(NzB-Nz/2+2:NzB,NxB-Nx/2+2:NxB)/Ncor;
-    Cv_star=Cv_star+Ito_sum*CIto*dt;
+    Itov=Ito_sum*CIto;
+    Cv_star=Cv_star+dt*Itov;
    
     % enforce BC
     vorticity = ifft2( Cv_star,'symmetric');
@@ -189,7 +189,8 @@ for n = 1:Nt-1
     CIto(Nz/2+2:Nz,1:Nx/2+1) = Cwrk(NzB-Nz/2+2:NzB,1:Nx/2+1)/Ncor;
     CIto(1:Nz/2+1,Nx/2+2:Nx) = Cwrk(1:Nz/2+1,NxB-Nx/2+2:NxB)/Ncor;
     CIto(Nz/2+2:Nz,Nx/2+2:Nx) = Cwrk(NzB-Nz/2+2:NzB,NxB-Nx/2+2:NxB)/Ncor;
-    CT_star=CT_star+Ito_sum*CIto*dt;
+    Itot=Ito_sum*CIto;
+    CT_star=CT_star+dt*Itot;
     % enforce BC
 
     theta = ifft2( CT_star,'symmetric');
@@ -199,6 +200,32 @@ for n = 1:Nt-1
         theta(k,:) = -theta(Nz-k+2,:);
     end
     CT_star = fft2(theta);
+    
+    % Corrector step for physics (rk2 with decentering)
+    flag_predict = 1;
+    Cp = Cv_star.*inv_laplacian;
+    CT1 = CT_star;
+    subgrid_scale_mixing;  
+    CT_star = CT + dt*CT_tendency + dt*Itot + dt * ( (1-alpha_dc)*Dt_n + alpha_dc*Dt ) ;
+    Cv_star = Cv + dt*Cv_tendency + dt*Itov + dt * ( (1-alpha_dc)*Dt_n + alpha_dc*Dt ) ;
+    
+    % enforce BC (after corrector step)
+
+    theta = ifft2( CT_star,'symmetric');
+    theta(1,:) = 0;
+    theta(Nz/2+1,:) = 0;
+    for k = Nz/2+2:Nz
+        theta(k,:) = -theta(Nz-k+2,:);
+    end
+    CT_star = fft2(theta);
+    
+    vorticity = ifft2( Cv_star,'symmetric');
+    vorticity(1,:) = 0;
+    vorticity(Nz/2+1,:) = 0;
+    for k = Nz/2+2:Nz
+        vorticity(k,:) = -vorticity(Nz-k+2,:);
+    end
+    Cv_star = fft2(vorticity);
     
     % advance indices
     vorticity_full(n+1,1:Nz/2,:) = vorticity(1:Nz/2,:);
