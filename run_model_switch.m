@@ -29,16 +29,21 @@ clear theta_full_0 vorticity_full_0   CT_full_0
 %% Run the selected Model
 t_start=cputime;
 switch model
-    case 'rk2'       
+    case 'rk2rk2'       
         run_model_RK2D_RK2P_sto_adv_u_2D;
-    case 'eul'
+    case 'eulrk2'
         run_model_EulD_RK2P_sto_adv_2D
-    case 'ito'
+    case 'itork2'
         run_model_EulD_RK2P_ito2D
     case 'euleul'
         run_model_EulD_EulP_sto_adv_2D
     case 'itoeul'
         run_model_EulD_EulP_ito2D
+    case 'rk3rk3'
+        run_model_RK3D_RK3P_sto_adv_u_2D
+    otherwise
+        warning('Specifeid Model was not found')
+        break
 end %end model switch
 t_end=cputime-t_start;
 end
