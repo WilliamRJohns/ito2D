@@ -43,7 +43,7 @@ switch model
         run_model_RK3D_RK3P_sto_adv_u_2D
     otherwise
         warning('Specifeid Model was not found')
-        break
+        return
 end %end model switch
 t_end=cputime-t_start;
 end

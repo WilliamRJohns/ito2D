@@ -1,9 +1,11 @@
-clearvars -except bob
-format long
+%Methods to compare with, rk2D_rk2P is the "true" solution
+meth1='itoeul'
+meth2='rk3rk3'
+gamma=15;        %Scaling parameter for the Noise
 tic
-tF=32; %length of integration in seconds
-Nx=128*2;    %x grid resolution (also needs to be changed in background_state)
-Nz = Nx/2;  %zgrid reolution
+tF=32;          %length of integration in seconds
+Nx=128*2;       %x grid resolution (also needs to be changed in background_state)
+Nz = Nx/2;      %zgrid reolution
 
 %arrays for avg convergence over different alpha values
 avg_eul=[]; avg_time_eul=[];
@@ -13,6 +15,7 @@ avg_rk2=[]; avg_time_rk2=[];
 %%different colors of noise
 %for alpha=[0,1e-5,1e-4,1e-3,1]
 for alpha=[0]
+    alpha 
     %arrays for different noise realizations
     diff_mat_eul=[]; time_mat_eul=[];
     diff_mat_ito=[]; time_mat_ito=[];
@@ -23,9 +26,9 @@ for alpha=[0]
         %Vectors for final error and running times for different dt resolutions
         rel_diff_eul=[];    time_eul=[];
         rel_diff_ito=[];    time_ito=[];
-        rel_diff_rk2=[NaN]; time_rk2=[];
+        rel_diff_rk2=[]; time_rk2=[];
         rel_theta_ito=[];
-        rel_theta_rk2=[NaN];
+        rel_theta_rk2=[];
         rel_theta_eul=[];
         
         ik
@@ -33,7 +36,7 @@ for alpha=[0]
         Nt = ( tF/dt + 1 ); 
 
         %Generate the white noise and ito correction term
-        gamma=10;
+        %gamma=20;
         seed=100*ik;
         rng(seed,'twister')
         t = [0:dt:dt*(Nt-1)]; %time vector
@@ -44,28 +47,28 @@ for alpha=[0]
         W=eta/sqrt(dt);
         
         %%Compute high res rk2 solution "ground truth"
-        [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,'rk2',W,Ito_sum);
-        time_rk2=[time_rk2 t_end];
+        [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,'rk2rk2',W,Ito_sum);
+        %time_rk2=[time_rk2 t_end];
         %"Ground Truth" solutions for comparison
         vort_mindt=squeeze(vorticity_full(end,:,:));
         theta_mindt=squeeze(theta_full(end,:,:));
         
-        %run high res Eul+Ito model
-        [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,'itoeul',W,Ito_sum);
-        time_ito=[time_ito t_end];
-        %Compute final error at tF
-        temp=norm(squeeze(vorticity_full(end,:,:))-vort_mindt)/norm(vort_mindt);
-        rel_diff_ito=[rel_diff_ito temp];
-        temp=norm(squeeze(theta_full(end,:,:))-theta_mindt)/norm(theta_mindt);
-        rel_theta_ito=[rel_theta_ito temp];
-        
-        %run high res Eul model
-        [vorticity_full,theta_full]=run_model_switch(tF,dt,Nx,'euleul',W,Ito_sum);
-        time_eul=[time_eul t_end];
-        temp=norm(squeeze(vorticity_full(end,:,:))-vort_mindt)/norm(vort_mindt);
-        rel_diff_eul=[rel_diff_eul temp];
-        temp=norm(squeeze(theta_full(end,:,:))-theta_mindt)/norm(theta_mindt);
-        rel_theta_eul=[rel_theta_eul temp];
+%         %run high res Eul+Ito model
+%         [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,meth1,W,Ito_sum);
+%         time_ito=[time_ito t_end];
+%         %Compute final error at tF
+%         temp=norm(squeeze(vorticity_full(end,:,:))-vort_mindt)/norm(vort_mindt);
+%         rel_diff_ito=[rel_diff_ito temp];
+%         temp=norm(squeeze(theta_full(end,:,:))-theta_mindt)/norm(theta_mindt);
+%         rel_theta_ito=[rel_theta_ito temp];
+%         
+%         %run high res Eul model
+%         [vorticity_full,theta_full]=run_model_switch(tF,dt,Nx,meth2,W,Ito_sum);
+%         time_eul=[time_eul t_end];
+%         temp=norm(squeeze(vorticity_full(end,:,:))-vort_mindt)/norm(vort_mindt);
+%         rel_diff_eul=[rel_diff_eul temp];
+%         temp=norm(squeeze(theta_full(end,:,:))-theta_mindt)/norm(theta_mindt);
+%         rel_theta_eul=[rel_theta_eul temp];
        
         % Run the model for increasing values of dt
         steps=[.05,.1,.5,1,2,4,8,16];
@@ -83,7 +86,7 @@ for alpha=[0]
             W=eta/sqrt(dt);    %W for the new dt
             
             %Run rk2 model 
-            [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,'rk2',W,Ito_sum);
+            [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,'rk2rk2',W,Ito_sum);
             time_rk2=[time_rk2 t_end];
             temp=norm(squeeze(vorticity_full(end,:,:))-vort_mindt)/norm(vort_mindt);
             rel_diff_rk2=[rel_diff_rk2 temp];
@@ -91,7 +94,7 @@ for alpha=[0]
             rel_theta_rk2=[rel_theta_rk2 temp];
             
             %Run Eul+ito model
-            [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,'itoeul',W,Ito_sum);
+            [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,meth1,W,Ito_sum);
             time_ito=[time_ito t_end];
             %Compute final error at tF
             temp=norm(squeeze(vorticity_full(end,:,:))-vort_mindt)/norm(vort_mindt);
@@ -100,7 +103,7 @@ for alpha=[0]
             rel_theta_ito=[rel_theta_ito temp];
             
             %Run Eul model
-            [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,'euleul',W,Ito_sum);
+            [vorticity_full,theta_full,t_end]=run_model_switch(tF,dt,Nx,meth2,W,Ito_sum);
             time_eul=[time_eul t_end];
             temp=norm(squeeze(vorticity_full(end,:,:))-vort_mindt)/norm(vort_mindt);
             rel_diff_eul=[rel_diff_eul temp];
@@ -135,13 +138,13 @@ save(sprintf('avg_rk2_%dw.mat',gamma),'avg_rk2')
 avg_time_rk2=[avg_time_rk2; mean(time_mat_rk2,1)];
 end
 toc
-steps=[.01 steps];
+%steps=[.01 steps];
 
 figure()
 semilogx(steps,avg_time_rk2(1,:)); hold on;
 semilogx(steps,avg_time_eul(1,:));
 semilogx(steps,avg_time_ito(1,:));
-legend('rk2','eul','ito')
+legend('rk2',meth2,meth1)
 title(sprintf('Avg running times alpha=%d'),0);
 xlabel('dt')
 ylabel('seconds')
@@ -150,8 +153,8 @@ figure()
 loglog(steps,avg_rk2(1,:),'b-*');hold on
 loglog(steps,avg_eul(1,:),'r-x');
 loglog(steps,avg_ito(1,:));
-legend('rk2','eul','ito')
-title(sprintf('Covergence alpha=%d',0))
+legend('rk2',meth2,meth1)
+title(sprintf('Covergence alpha=%d,gamma=%d',0,gamma))
 
 figure()
 loglog(steps,avg_rk2(2,:));hold on
